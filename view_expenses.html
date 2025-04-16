@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Expenses - Expense Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="list-page">
+    <div class="view-expenses-container">
+        <!-- Header Section -->
+        <header>
+            <h1><i class="fas fa-list icon"></i>View Expenses</h1>
+            <p>Here's a list of all your expenses.</p>
+        </header>
+
+        <!-- Expenses Container -->
+        <div class="expenses-container">
+            <div class="expenses-section">
+                <h2>Offline Transactions</h2>
+                <div class="table-container">
+        <table id="expenses-table">
+            <thead>
+                <tr>
+                    <th>Category</th>
+                                <th>Amount</th>
+                    <th>Description</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                            <!-- Expenses will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="expenses-section">
+                <h2>Online Transactions</h2>
+                <div class="table-container">
+                    <table id="online-transactions-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th>Description</th>
+                                <th>Date</th>
+                                <th>Payment Mode</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Online transactions will be loaded here -->
+            </tbody>
+        </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="links">
+            <a href="dashboard.html" class="btn"><i class="fas fa-arrow-left icon"></i>Back to Dashboard</a>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="remaining"></i>Budget Limit (₹)</label>
+        <input type="number" id="budget-limit" name="budget_limit" step="0.01" required>
+    </div>
+
+    <!-- Add Bootstrap JS and SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+        // Check login status before fetching expenses
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch('backend/check_session.php');
+                const data = await response.json();
+                
+                if (!data.loggedIn) {
+                    window.location.href = 'login.html';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error('Error checking login status:', error);
+                window.location.href = 'login.html';
+                return false;
+            }
+        }
+
+        // Fetch expenses from the backend and display them
+        async function fetchExpenses() {
+            try {
+                console.log('Starting to fetch expenses...');
+                const response = await fetch('backend/get_expenses.php');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Fetched expenses data:', data); // Debug log
+                
+                if (data.success) {
+                    const offlineExpenses = data.offline_expenses || [];
+                    const onlineExpenses = data.online_expenses || [];
+                    
+                    console.log(`Found ${offlineExpenses.length} offline expenses and ${onlineExpenses.length} online expenses`);
+                    
+                    // Display offline expenses
+                    const offlineTableBody = document.querySelector('#expenses-table tbody');
+                    if (!offlineTableBody) {
+                        console.error('Could not find offline expenses table body');
+                        return;
+                    }
+                    
+                    if (offlineExpenses.length === 0) {
+                        offlineTableBody.innerHTML = '<tr><td colspan="5" class="no-expenses">No offline expenses found</td></tr>';
+                    } else {
+                        offlineTableBody.innerHTML = ''; // Clear existing rows
+                        offlineExpenses.forEach((expense, index) => {
+                            console.log(`Processing offline expense ${index + 1}:`, expense);
+                            const row = document.createElement('tr');
+                            row.setAttribute('data-expense-id', expense.id);
+                            row.innerHTML = `
+                                <td>${expense.category || 'N/A'}</td>
+                                <td>₹${parseFloat(expense.amount || 0).toFixed(2)}</td>
+                                <td>${expense.description || 'No description'}</td>
+                                <td>${expense.date || 'No date'}</td>
+                                <td>
+                                    <button onclick="editExpense(${expense.id}, 'manual')" class="btn edit-btn"><i class="fas fa-edit icon"></i>Edit</button>
+                                    <button onclick="deleteExpense(${expense.id}, 'manual')" class="btn delete-btn"><i class="fas fa-trash icon"></i>Delete</button>
+                                </td>
+                            `;
+                            offlineTableBody.appendChild(row);
+                        });
+                    }
+                    
+                    // Display online expenses
+                    const onlineTableBody = document.querySelector('#online-transactions-table tbody');
+                    if (!onlineTableBody) {
+                        console.error('Could not find online transactions table body');
+                        return;
+                    }
+                    
+                    if (onlineExpenses.length === 0) {
+                        onlineTableBody.innerHTML = '<tr><td colspan="5" class="no-expenses">No online transactions found</td></tr>';
+                    } else {
+                        onlineTableBody.innerHTML = ''; // Clear existing rows
+                        onlineExpenses.forEach((expense, index) => {
+                            console.log(`Processing online expense ${index + 1}:`, expense);
+                            const row = document.createElement('tr');
+                            row.setAttribute('data-expense-id', expense.id);
+                            row.innerHTML = `
+                                <td>${expense.category || 'N/A'}</td>
+                                <td>₹${parseFloat(expense.amount || 0).toFixed(2)}</td>
+                                <td>${expense.description || 'No description'}</td>
+                                <td>${expense.date || 'No date'}</td>
+                                <td>
+                                    <span class="online-badge">Online</span>
+                                </td>
+                            `;
+                            onlineTableBody.appendChild(row);
+                        });
+                    }
+                    
+                    console.log('Finished displaying all expenses');
+                } else {
+                    console.error('Invalid response format:', data);
+                    throw new Error(data.error || 'Failed to fetch expenses');
+                }
+            } catch (error) {
+                console.error('Error fetching expenses:', error);
+                const offlineTableBody = document.querySelector('#expenses-table tbody');
+                const onlineTableBody = document.querySelector('#online-transactions-table tbody');
+                if (offlineTableBody) {
+                    offlineTableBody.innerHTML = `<tr><td colspan="5" class="error-message">Error: ${error.message}</td></tr>`;
+                }
+                if (onlineTableBody) {
+                    onlineTableBody.innerHTML = `<tr><td colspan="5" class="error-message">Error: ${error.message}</td></tr>`;
+                }
+            }
+        }
+
+        // Function to delete expense
+        async function deleteExpense(id, source) {
+            try {
+                const result = await Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, delete it!'
+                });
+
+                if (result.isConfirmed) {
+                    const endpoint = source === 'telegram' ? 'backend/delete_expense.php' : 'backend/delete_offline_expense.php';
+                    
+                    // Send the request with proper headers and body
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ id: id })
+                    });
+
+                    // Get the response text first
+                    const responseText = await response.text();
+                    let data;
+                    
+                    try {
+                        // Try to parse the response as JSON
+                        data = JSON.parse(responseText);
+                    } catch (e) {
+                        // If parsing fails, throw an error with the raw response
+                        throw new Error(`Server response: ${responseText}`);
+                    }
+
+                    if (!response.ok) {
+                        throw new Error(data.error || `HTTP error! status: ${response.status}`);
+                    }
+
+                    if (data.success) {
+                        // Remove the row from the table
+                        const row = document.querySelector(`tr[data-expense-id="${id}"]`);
+                        if (row) {
+                            row.remove();
+                        }
+                        
+                        Swal.fire(
+                            'Deleted!',
+                            'Expense has been deleted.',
+                            'success'
+                        );
+                    } else {
+                        throw new Error(data.error || 'Failed to delete expense');
+                    }
+                }
+            } catch (error) {
+                console.error('Error deleting expense:', error);
+                Swal.fire(
+                    'Error!',
+                    error.message,
+                    'error'
+                );
+            }
+        }
+
+        // Function to edit expense
+        function editExpense(id, source) {
+            // Redirect to edit page with expense ID and source
+            window.location.href = `edit_expense.html?id=${id}&source=${source}`;
+        }
+
+        // Call the function when the page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('Page loaded, fetching expenses...');
+            await fetchExpenses();
+        });
+</script>
+
+<style>
+    /* Table Styles */
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+        margin-top: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 20px;
+    }
+
+    #expenses-table, #online-transactions-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        background: transparent;
+    }
+
+    #expenses-table th, #expenses-table td,
+    #online-transactions-table th, #online-transactions-table td {
+        padding: 12px;
+        text-align: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+    }
+
+    #expenses-table th, #online-transactions-table th {
+        background-color: rgba(255, 255, 255, 0.1);
+        font-weight: 600;
+        color: #ffffff;
+        text-align: center !important;
+        vertical-align: middle;
+    }
+
+    #expenses-table td, #online-transactions-table td {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #expenses-table tr:hover, #online-transactions-table tr:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Badge Styles */
+    .online-badge {
+        background-color: #4CAF50;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8em;
+        margin-right: 8px;
+        display: inline-block;
+    }
+
+    /* Section Styles */
+    .expenses-section {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .expenses-section h2 {
+        color: #ffffff;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-size: 1.5em;
+        text-align: center;
+    }
+
+    .expenses-section h2 .icon {
+        color: #4CAF50;
+    }
+
+    /* Button Styles */
+    .btn {
+        padding: 8px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9em;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin: 0 5px;
+    }
+
+    .edit-btn {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .delete-btn {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .btn:hover {
+        opacity: 0.9;
+    }
+
+    /* Message Styles */
+    .no-expenses {
+        text-align: center;
+        color: #ffffff;
+        padding: 20px;
+        font-style: italic;
+    }
+
+    .error-message {
+        color: #dc3545;
+        text-align: center;
+        padding: 10px;
+    }
+
+    /* Container Styles */
+    .expenses-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* Telegram Messages Section */
+    /* .telegram-messages-section {
+        margin: 20px 0;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+    }
+
+    .telegram-messages-section h3 {
+        color: #ffffff;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .telegram-messages-section h3 i {
+        color: #0088cc;
+    }
+
+    .messages-container {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .message-item {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        border-left: 4px solid #0088cc;
+    }
+
+    .message-text {
+        color: #ffffff;
+        margin-bottom: 5px;
+    }
+
+    .message-timestamp {
+        color: #cccccc;
+        font-size: 0.9em;
+    }
+
+    .no-messages {
+        color: #ffffff;
+        text-align: center;
+        padding: 20px;
+    } */
+
+    /* Fetch Transactions Button */
+    /* .fetch-transactions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin: 20px 0;
+    }
+
+    .fetch-transactions .btn {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .fetch-transactions .btn:hover {
+        background-color: #0056b3;
+    }
+
+    .fetch-transactions .btn i {
+        font-size: 1.1em;
+    } */
+</style>
+</body>
+</html>

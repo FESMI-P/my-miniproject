@@ -1,0 +1,56 @@
+[23-Mar-2025 09:45:38 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ':user_id ORDER BY date DESC' at line 1 in C:\xampp\htdocs\expense tracker1\backend\get_expenses.php:21
+Stack trace:
+#0 C:\xampp\htdocs\expense tracker1\backend\get_expenses.php(21): mysqli->prepare('SELECT id, cate...')
+#1 {main}
+  thrown in C:\xampp\htdocs\expense tracker1\backend\get_expenses.php on line 21
+[23-Mar-2025 09:45:38 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ':user_id ORDER BY date DESC' at line 1 in C:\xampp\htdocs\expense tracker1\backend\get_expenses.php:21
+Stack trace:
+#0 C:\xampp\htdocs\expense tracker1\backend\get_expenses.php(21): mysqli->prepare('SELECT id, cate...')
+#1 {main}
+  thrown in C:\xampp\htdocs\expense tracker1\backend\get_expenses.php on line 21
+[23-Mar-2025 09:45:38 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function isLoggedIn() in C:\xampp\htdocs\expense tracker1\backend\get_telegram_messages.php:6
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\expense tracker1\backend\get_telegram_messages.php on line 6
+[23-Mar-2025 09:48:55 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function isLoggedIn() in C:\xampp\htdocs\expense tracker1\backend\get_telegram_messages.php:6
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\expense tracker1\backend\get_telegram_messages.php on line 6
+[23-Mar-2025 09:48:55 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ':user_id ORDER BY date DESC' at line 1 in C:\xampp\htdocs\expense tracker1\backend\get_expenses.php:21
+Stack trace:
+#0 C:\xampp\htdocs\expense tracker1\backend\get_expenses.php(21): mysqli->prepare('SELECT id, cate...')
+#1 {main}
+  thrown in C:\xampp\htdocs\expense tracker1\backend\get_expenses.php on line 21
+[23-Mar-2025 09:48:55 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ':user_id ORDER BY date DESC' at line 1 in C:\xampp\htdocs\expense tracker1\backend\get_expenses.php:21
+Stack trace:
+#0 C:\xampp\htdocs\expense tracker1\backend\get_expenses.php(21): mysqli->prepare('SELECT id, cate...')
+#1 {main}
+  thrown in C:\xampp\htdocs\expense tracker1\backend\get_expenses.php on line 21
+[23-Mar-2025 10:01:27 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function isLoggedIn() in C:\xampp\htdocs\expense tracker1\backend\get_telegram_messages.php:6
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\expense tracker1\backend\get_telegram_messages.php on line 6
+[23-Mar-2025 10:01:27 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ':user_id ORDER BY date DESC' at line 1 in C:\xampp\htdocs\expense tracker1\backend\get_expenses.php:21
+Stack trace:
+#0 C:\xampp\htdocs\expense tracker1\backend\get_expenses.php(21): mysqli->prepare('SELECT id, cate...')
+#1 {main}
+  thrown in C:\xampp\htdocs\expense tracker1\backend\get_expenses.php on line 21
+[23-Mar-2025 10:01:27 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ':user_id ORDER BY date DESC' at line 1 in C:\xampp\htdocs\expense tracker1\backend\get_expenses.php:21
+Stack trace:
+#0 C:\xampp\htdocs\expense tracker1\backend\get_expenses.php(21): mysqli->prepare('SELECT id, cate...')
+#1 {main}
+  thrown in C:\xampp\htdocs\expense tracker1\backend\get_expenses.php on line 21
+[23-Mar-2025 10:01:28 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ':user_id ORDER BY date DESC' at line 1 in C:\xampp\htdocs\expense tracker1\backend\get_expenses.php:21
+Stack trace:
+#0 C:\xampp\htdocs\expense tracker1\backend\get_expenses.php(21): mysqli->prepare('SELECT id, cate...')
+#1 {main}
+  thrown in C:\xampp\htdocs\expense tracker1\backend\get_expenses.php on line 21
+[23-Mar-2025 10:01:28 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function isLoggedIn() in C:\xampp\htdocs\expense tracker1\backend\get_telegram_messages.php:6
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\expense tracker1\backend\get_telegram_messages.php on line 6
+[23-Mar-2025 10:01:28 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ':user_id ORDER BY date DESC' at line 1 in C:\xampp\htdocs\expense tracker1\backend\get_expenses.php:21
+Stack trace:
+#0 C:\xampp\htdocs\expense tracker1\backend\get_expenses.php(21): mysqli->prepare('SELECT id, cate...')
+#1 {main}
+  thrown in C:\xampp\htdocs\expense tracker1\backend\get_expenses.php on line 21

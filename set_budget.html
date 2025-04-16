@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set Budget - Expense Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .budget-info {
+            background-color: rgba(255, 255, 255, 0.2) !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: relative;
+            z-index: 1;
+            color: #fff !important;
+        }
+        .budget-info.warning {
+            background-color: rgba(255, 193, 7, 0.2) !important;
+            border-color: rgba(255, 193, 7, 0.3) !important;
+        }
+        .budget-info h3 {
+            margin-top: 0;
+            color: #fff !important;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        .budget-info.warning h3 {
+            color: #fff3cd !important;
+        }
+        .budget-info ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .budget-info li {
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .budget-info .amount {
+            font-weight: bold;
+            color: #fff !important;
+        }
+
+        /* Add havoc animation styles for form fields */
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ffffff;
+            font-weight: 500;
+            font-size: 1.1em;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #4CAF50;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
+            outline: none;
+            transform: translateY(-2px);
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.8);
+            opacity: 1;
+        }
+
+        .form-group select option {
+            background: #2c3e50;
+            color: #ffffff;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(76, 175, 80, 0.3);
+            background: linear-gradient(45deg, #45a049, #4CAF50);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .icon {
+            font-size: 1.2em;
+        }
+
+        /* Add hover effect for form fields */
+        .form-group input:hover,
+        .form-group select:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        /* Style for disabled state */
+        .form-group input:disabled,
+        .form-group select:disabled {
+            background: rgba(255, 255, 255, 0.05);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* Add animation for focus state */
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px rgba(76, 175, 80, 0.2); }
+            50% { box-shadow: 0 0 20px rgba(76, 175, 80, 0.4); }
+            100% { box-shadow: 0 0 5px rgba(76, 175, 80, 0.2); }
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            animation: glow 2s infinite;
+        }
+    </style>
+    
+    <!-- Add debug style to highlight the container -->
+    <style>
+        .container {
+            position: relative;
+            z-index: 0;
+            color: #fff !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-chart-pie icon"></i>Set Budget</h1>
+            <p>Set monthly budgets for different categories.</p>
+        </header>
+
+        <!-- Budget Information Display -->
+        <div id="budget-info" class="budget-info">
+            <h3>Budget Information</h3>
+            <ul>
+                <li>
+                    <span>Monthly Income:</span>
+                    <span class="amount" id="info-income">₹0.00</span>
+                </li>
+                <li>
+                    <span>Savings Goal:</span>
+                    <span class="amount" id="info-savings">₹0.00</span>
+                </li>
+                <li>
+                    <span>Available for Budgets:</span>
+                    <span class="amount" id="info-available">₹0.00</span>
+                </li>
+                <li>
+                    <span>Total Budgets:</span>
+                    <span class="amount" id="info-total-budgets">₹0.00</span>
+                </li>
+                <li>
+                    <span>Remaining:</span>
+                    <span class="amount" id="info-remaining">₹0.00</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Set Income Form -->
+        <form id="set-income-form" action="backend/set_income.php" method="POST">
+            <div class="form-group">
+                <label for="total-income"></i>Total Income (₹)</label>
+                <input type="number" id="total-income" name="total_income" step="0.01" required>
+            </div>
+            <button type="submit" class="btn"><i class="fas fa-save icon"></i>Set Income</button>
+        </form>
+
+        <!-- Set Savings Goal Form -->
+        <form id="set-savings-form" action="backend/set_savings.php" method="POST">
+            <div class="form-group">
+                <label for="savings-goal"><i class="fas fa-piggy-bank icon"></i>Savings Goal (₹)</label>
+                <input type="number" id="savings-goal" name="savings_goal" step="0.01" required>
+            </div>
+            <button type="submit" class="btn"><i class="fas fa-save icon"></i>Set Savings Goal</button>
+        </form>
+
+        <!-- Set Budget Form -->
+        <form id="set-budget-form" action="backend/set_budget.php" method="POST">
+            <div class="form-group">
+                <label for="category"><i class="fas fa-tags icon"></i>Category</label>
+                <select id="category" name="category" required>
+                    <option value="Food & Dining">Food & Dining</option>
+                    <option value="Transportation">Transportation</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Utilities">Utilities</option>
+                    <option value="Shopping">Shopping</option>
+                    <option value="Healthcare">Healthcare</option>
+                    <option value="Education">Education</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="budget-limit"></i>Budget Limit (₹)</label>
+                <input type="number" id="budget-limit" name="budget_limit" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="remaining"></i>Remaining (₹)</label>
+                <input type="number" id="budget-limit" name="budget_limit" step="0.01" required>
+            </div>
+            <button type="submit" class="btn"><i class="fas fa-save icon"></i>Set Budget</button>
+        </form>
+
+        <div class="links">
+            <a href="dashboard.html" class="btn"><i class="fas fa-arrow-left icon"></i>Back to Dashboard</a>
+        </div>
+    </div>
+
+    <script>
+        // Function to show a notification
+        function showNotification(message, isError = false) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${isError ? 'error' : 'success'}`;
+            notification.innerText = message;
+            document.body.appendChild(notification);
+
+            // Remove the notification after 3 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Function to clear local storage
+        function clearLocalStorage() {
+            localStorage.removeItem('totalIncome');
+            localStorage.removeItem('savingsGoal');
+        }
+
+        // Function to check if the database is empty
+        async function checkDatabase() {
+            try {
+                const response = await fetch('backend/check_database.php');
+                const result = await response.json();
+
+                if (result.isEmpty) {
+                    // Clear local storage if the database is empty
+                    clearLocalStorage();
+                }
+            } catch (error) {
+                console.error('Error checking database:', error);
+            }
+        }
+
+        // Function to update budget information display
+        function updateBudgetInfo(info) {
+            const budgetInfo = document.getElementById('budget-info');
+            if (!budgetInfo) {
+                console.error('Budget info element not found');
+                return;
+            }
+
+            try {
+                // Format and display the values
+                document.getElementById('info-income').textContent = 
+                    info.total_income ? `₹${parseFloat(info.total_income).toFixed(2)}` : '₹0.00';
+                document.getElementById('info-savings').textContent = 
+                    info.savings_goal ? `₹${parseFloat(info.savings_goal).toFixed(2)}` : '₹0.00';
+                document.getElementById('info-available').textContent = 
+                    info.available_amount ? `₹${parseFloat(info.available_amount).toFixed(2)}` : '₹0.00';
+                document.getElementById('info-total-budgets').textContent = 
+                    info.total_budgets ? `₹${parseFloat(info.total_budgets).toFixed(2)}` : '₹0.00';
+                document.getElementById('info-remaining').textContent = 
+                    info.remaining ? `₹${parseFloat(info.remaining).toFixed(2)}` : '₹0.00';
+
+                // Add warning class if remaining is negative
+                budgetInfo.className = 'budget-info' + (parseFloat(info.remaining) < 0 ? ' warning' : '');
+            } catch (error) {
+                console.error('Error updating budget info:', error);
+                showNotification('Error updating budget information', true);
+            }
+        }
+
+        // Function to fetch and display current budget information
+        async function fetchBudgetInfo() {
+            try {
+                console.log('Fetching budget info...');
+                const response = await fetch('backend/get_budget_info.php');
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('Received budget info:', result);
+
+                if (result.success) {
+                    console.log('Updating budget info with:', result.budget_info);
+                    updateBudgetInfo(result.budget_info);
+                    
+                    // Force display the budget info section
+                    const budgetInfo = document.getElementById('budget-info');
+                    if (budgetInfo) {
+                        budgetInfo.style.display = 'block';
+                        console.log('Forced budget info display to block');
+                    }
+                } else {
+                    throw new Error(result.error || 'Failed to fetch budget info');
+                }
+            } catch (error) {
+                console.error('Error fetching budget info:', error);
+                showNotification('Error fetching budget information', true);
+                
+                // Even on error, show the budget info with zeros
+                const defaultInfo = {
+                    total_income: 0,
+                    savings_goal: 0,
+                    available_amount: 0,
+                    total_budgets: 0,
+                    remaining: 0
+                };
+                updateBudgetInfo(defaultInfo);
+                
+                // Force display the budget info section
+                const budgetInfo = document.getElementById('budget-info');
+                if (budgetInfo) {
+                    budgetInfo.style.display = 'block';
+                    console.log('Forced budget info display to block (after error)');
+                }
+            }
+        }
+
+        // Load budget information when page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('Page loaded, initializing...');
+            
+            // Force display the budget info section immediately
+            const budgetInfo = document.getElementById('budget-info');
+            if (budgetInfo) {
+                budgetInfo.style.display = 'block';
+                console.log('Initially forced budget info display to block');
+            }
+            
+            await checkDatabase();
+            await fetchBudgetInfo();  // Fetch initial budget info
+
+            // Set up periodic refresh of budget info (every 5 seconds)
+            setInterval(fetchBudgetInfo, 5000);
+
+            const savedIncome = localStorage.getItem('totalIncome');
+            const savedSavingsGoal = localStorage.getItem('savingsGoal');
+
+            if (savedIncome) {
+                document.getElementById('total-income').value = savedIncome;
+            }
+            if (savedSavingsGoal) {
+                document.getElementById('savings-goal').value = savedSavingsGoal;
+            }
+        });
+
+        // Handle Set Income Form Submission
+        document.getElementById('set-income-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const totalIncome = document.getElementById('total-income').value;
+
+            try {
+                const formData = new FormData(e.target);
+                const response = await fetch('backend/set_income.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+
+                if (result.success) {
+                    showNotification('Income set successfully!');
+                    localStorage.setItem('totalIncome', totalIncome);
+                    await fetchBudgetInfo();  // Refresh budget info after setting income
+                } else {
+                    throw new Error(result.error || 'Failed to set income');
+                }
+            } catch (error) {
+                console.error('Error setting income:', error);
+                showNotification(error.message || 'Failed to set income', true);
+            }
+        });
+
+        // Handle Set Savings Goal Form Submission
+        document.getElementById('set-savings-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const savingsGoal = document.getElementById('savings-goal').value;
+
+            try {
+                const formData = new FormData(e.target);
+                const response = await fetch('backend/set_savings.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showNotification('Savings goal set successfully!');
+                    localStorage.setItem('savingsGoal', savingsGoal);
+                    await fetchBudgetInfo();  // Refresh budget info after setting savings
+                } else {
+                    throw new Error(result.error || 'Failed to set savings goal');
+                }
+            } catch (error) {
+                console.error('Error setting savings goal:', error);
+                showNotification(error.message || 'Failed to set savings goal', true);
+            }
+        });
+
+        // Handle Set Budget Form Submission
+        document.getElementById('set-budget-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            try {
+                const formData = new FormData(e.target);
+                const response = await fetch('backend/set_budget.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showNotification('Budget set successfully!');
+                    await fetchBudgetInfo();  // Refresh budget info after setting budget
+                    // Clear the form
+                    e.target.reset();
+                } else {
+                    // Show a simple error message
+                    let errorMessage = 'Budget limit exceeds available amount';
+                    showNotification(errorMessage, true);
+                }
+            } catch (error) {
+                console.error('Error setting budget:', error);
+                showNotification('Failed to set budget. Please try again.', true);
+            }
+        });
+    </script>
+</body>
+</html>

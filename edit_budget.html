@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Budget - Expense Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Add SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <!-- Add SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="edit-page">
+    <div class="edit-form-container">
+        <header>
+            <h1><i class="fas fa-edit icon"></i>Edit Budget</h1>
+            <p>Update your budget details below.</p>
+        </header>
+
+        <form id="edit-budget-form">
+            <!-- Add hidden input for budget ID -->
+            <input type="hidden" id="budget_id" name="budget_id">
+            
+            <div class="form-group">
+                <label for="category"><i class="fas fa-tags icon"></i>Category</label>
+                <input type="text" id="category" name="category" required>
+            </div>
+
+            <div class="form-group">
+                <label for="budget_limit"><i class="fas fa-rupee-sign icon"></i>Budget Limit (₹)</label>
+                <input type="number" id="budget_limit" name="budget_limit" step="0.01" required>
+            </div>
+
+            <button type="submit" class="btn"><i class="fas fa-save icon"></i>Save Changes</button>
+        </form>
+
+        <!-- Add budget info display section -->
+        <div id="budget-info" class="budget-info">
+            <!-- Budget info will be populated here -->
+        </div>
+
+        <div class="links">
+            <a href="view_budgets.html" class="btn"><i class="fas fa-arrow-left icon"></i>Back to Budgets</a>
+        </div>
+    </div>
+
+    <script>
+        // Get budget ID from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const budgetId = urlParams.get('id');
+        
+        // Debug logging
+        console.log("URL Parameters:", window.location.search);
+        console.log("Budget ID from URL:", budgetId);
+
+        // Fetch existing budget details
+        async function fetchBudgetDetails() {
+            try {
+                if (!budgetId) {
+                    throw new Error('No budget ID provided');
+                }
+
+                console.log('Fetching budget details for ID:', budgetId);
+                const response = await fetch(`backend/get_budget.php?id=${budgetId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('Response from get_budget.php:', result);
+
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to fetch budget details');
+                }
+
+                if (!result.data) {
+                    throw new Error('No budget data received');
+                }
+
+                const budget = result.data;
+                console.log('Budget data:', budget);
+
+                // Populate form fields
+                document.getElementById('category').value = budget.category;
+                document.getElementById('budget_limit').value = budget.budget_limit;
+                document.getElementById('budget_id').value = budget.id;
+
+                // Update budget info display
+                const budgetInfo = document.getElementById('budget-info');
+                if (budgetInfo) {
+                    budgetInfo.innerHTML = `
+                        <div class="info-item">
+                            <span class="info-label">Total Income:</span>
+                            <span class="info-value">₹${budget.total_income.toFixed(2)}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Savings Goal:</span>
+                            <span class="info-value">₹${budget.savings_goal.toFixed(2)}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Available for Budgets:</span>
+                            <span class="info-value">₹${budget.available_amount.toFixed(2)}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Total Budgets:</span>
+                            <span class="info-value">₹${budget.total_budgets.toFixed(2)}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Remaining:</span>
+                            <span class="info-value">₹${budget.remaining.toFixed(2)}</span>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error fetching budget details:', error);
+                Swal.fire({
+                    title: 'Error!',
+                    text: error.message,
+                    icon: 'error',
+                    confirmButtonColor: '#d33'
+                });
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('edit-budget-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            try {
+                const category = document.getElementById('category').value.trim();
+                const budget_limit = parseFloat(document.getElementById('budget_limit').value);
+
+                // Validate inputs
+                if (!category) {
+                    throw new Error('Category cannot be empty');
+                }
+                if (isNaN(budget_limit) || budget_limit <= 0) {
+                    throw new Error('Budget limit must be a positive number');
+                }
+
+                const formData = {
+                    id: document.getElementById('budget_id').value,
+                    category: category,
+                    budget_limit: budget_limit.toFixed(2)
+                };
+
+                const response = await fetch('backend/update_budget.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Budget updated successfully!',
+                        showConfirmButton: false,
+                        timer: 1500,
+                        timerProgressBar: true
+                    }).then(() => {
+                        window.location.href = 'view_budgets.html';
+                    });
+                } else {
+                    throw new Error(result.error || 'Failed to update budget');
+                }
+            } catch (error) {
+                console.error('Error updating budget:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: error.message,
+                    confirmButtonColor: '#d33'
+                });
+            }
+        });
+
+        // Load budget details when page loads
+        if (budgetId) {
+            fetchBudgetDetails();
+        } else {
+            Swal.fire({
+                title: 'Error!',
+                text: 'No budget ID provided.',
+                icon: 'error',
+                confirmButtonColor: '#d33'
+            }).then(() => {
+                window.location.href = 'view_budgets.html';
+            });
+        }
+    </script>
+</body>
+</html> 

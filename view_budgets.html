@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Budgets - Expense Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Add SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <!-- Add SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* ... existing styles ... */
+
+        /* Update text colors for better visibility */
+        #budgets-table th {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        #budgets-table td {
+            color: #ffffff;
+        }
+
+        .budget-separator h3 {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .budget-transaction td {
+            color: #ffffff;
+        }
+
+        .budget-badge {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .error-message {
+            color: #dc3545;
+        }
+
+        /* Update filter labels */
+        .filter-section label {
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        /* Update select elements */
+        .filter-section select {
+            color: #ffffff;
+        }
+
+        /* Update no budgets message */
+        .no-budgets {
+            color: #ffffff;
+        }
+
+        /* Update table header */
+        .table-header h2 {
+            color: #ffffff;
+        }
+
+        /* Update action buttons */
+        .btn {
+            color: #fff;
+        }
+
+        .edit-btn {
+            background-color: #28a745;
+        }
+
+        .delete-btn {
+            background-color: #dc3545;
+        }
+
+        /* Add refresh button styles */
+        .refresh-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .refresh-btn:hover {
+            background-color: #218838;
+        }
+
+        .refresh-btn i {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body class="list-page">
+    <div class="view-budgets-container">
+        <header>
+            <h1><i class="fas fa-chart-pie icon"></i>View Budgets</h1>
+            <p>Here's a list of all your budget plans.</p>
+            <button onclick="fetchBudgets()" class="refresh-btn">
+                <i class="fas fa-sync-alt"></i>Refresh
+            </button>
+        </header>
+
+        <!-- Budgets Table -->
+        <table id="budgets-table">
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Budget Limit (₹)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Budgets will be dynamically inserted here -->
+            </tbody>
+        </table>
+
+        <div class="links">
+            <a href="dashboard.html" class="btn"><i class="fas fa-arrow-left icon"></i>Back to Dashboard</a>
+        </div>
+    </div>
+
+    <script>
+        // Fetch budgets for the logged-in user
+        async function fetchBudgets() {
+            try {
+                const response = await fetch('backend/get_budgets.php');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Raw response:', data);
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to fetch budgets');
+                }
+
+                const budgets = data.budgets;
+                if (!Array.isArray(budgets)) {
+                    throw new Error('Invalid budgets data format');
+                }
+
+                const tableBody = document.querySelector('#budgets-table tbody');
+                if (!tableBody) {
+                    throw new Error('Could not find budgets table body');
+                }
+                
+                tableBody.innerHTML = ''; // Clear existing rows
+
+                if (budgets.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="3" class="no-budgets">No budgets found</td>';
+                    tableBody.appendChild(row);
+                    return;
+                }
+
+                // Create a map to track unique categories
+                const categoryMap = new Map();
+
+                budgets.forEach(budget => {
+                    // Only add the budget if its category hasn't been seen before
+                    if (!categoryMap.has(budget.category)) {
+                        categoryMap.set(budget.category, budget);
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${budget.category}</td>
+                            <td>₹${parseFloat(budget.budget_limit || 0).toFixed(2)}</td>
+                            <td>
+                                <button onclick="editBudget(${budget.id})" class="btn edit-btn"><i class="fas fa-edit icon"></i>Edit</button>
+                                <button onclick="deleteBudget(${budget.id})" class="btn delete-btn"><i class="fas fa-trash icon"></i>Delete</button>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    }
+                });
+            } catch (error) {
+                console.error('Error fetching budgets:', error);
+                const tableBody = document.querySelector('#budgets-table tbody');
+                if (tableBody) {
+                    tableBody.innerHTML = `<tr><td colspan="3" class="error-message">Error loading budgets: ${error.message}</td></tr>`;
+                }
+            }
+        }
+
+        // Function to edit a budget
+        function editBudget(budgetId) {
+            window.location.href = `edit_budget.html?id=${budgetId}`;
+        }
+
+        // Function to delete a budget
+        async function deleteBudget(budgetId) {
+            try {
+                const result = await Swal.fire({
+                    title: 'Are you sure?',
+                    text: "This action cannot be undone!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'Cancel'
+                });
+
+                if (result.isConfirmed) {
+                    const response = await fetch('backend/delete_budget.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `id=${budgetId}`
+                    });
+                    
+                    const data = await response.json();
+
+                    if (data.success) {
+                        Swal.fire({
+                            title: 'Deleted!',
+                            text: 'Budget has been deleted successfully.',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        fetchBudgets(); // Refresh the budgets table
+                    } else {
+                        throw new Error(data.error || 'Failed to delete budget');
+                    }
+                }
+            } catch (error) {
+                console.error('Error deleting budget:', error);
+                Swal.fire({
+                    title: 'Error!',
+                    text: error.message,
+                    icon: 'error',
+                    confirmButtonColor: '#d33'
+                });
+            }
+        }
+
+        // Fetch budgets when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchBudgets();
+            // Refresh budgets every 5 seconds
+            setInterval(fetchBudgets, 5000);
+        });
+    </script>
+</body>
+</html>

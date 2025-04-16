@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Expense - Expense Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Add SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <!-- Add SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .warning-message {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            display: none;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .warning-message.savings-warning {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .warning-message .warning-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .warning-message .warning-content {
+            margin-left: 24px;
+        }
+        .warning-message .warning-details {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 4px;
+        }
+        .warning-buttons {
+            margin-top: 15px;
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+        }
+        .warning-buttons button {
+            padding: 8px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .confirm-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        .confirm-btn:hover {
+            background-color: #218838;
+        }
+        .cancel-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+        .cancel-btn:hover {
+            background-color: #c82333;
+        }
+        /* Add styles to ensure form fields are interactive */
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ffffff;
+            font-weight: 500;
+            font-size: 1.1em;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #4CAF50;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
+            outline: none;
+            transform: translateY(-2px);
+        }
+        .form-group input::placeholder,
+        .form-group select::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(255, 255, 255, 0.8);
+            opacity: 1;
+        }
+        .form-group select option {
+            background: #2c3e50;
+            color: #ffffff;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        .btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(76, 175, 80, 0.3);
+            background: linear-gradient(45deg, #45a049, #4CAF50);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .icon {
+            font-size: 1.2em;
+        }
+        /* Add hover effect for form fields */
+        .form-group input:hover,
+        .form-group select:hover,
+        .form-group textarea:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.12);
+        }
+        /* Style for disabled state */
+        .form-group input:disabled,
+        .form-group select:disabled,
+        .form-group textarea:disabled {
+            background: rgba(255, 255, 255, 0.05);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        /* Add animation for focus state */
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px rgba(76, 175, 80, 0.2); }
+            50% { box-shadow: 0 0 20px rgba(76, 175, 80, 0.4); }
+            100% { box-shadow: 0 0 5px rgba(76, 175, 80, 0.2); }
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            animation: glow 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-plus icon"></i>Add Expense</h1>
+            <p>Track your expenses easily by adding them here.</p>
+        </header>
+        <div id="warning-message" class="warning-message">
+            <div id="warning-text"></div>
+            <div class="warning-buttons">
+                <button type="button" class="confirm-btn" id="confirm-expense">Confirm</button>
+                <button type="button" class="cancel-btn" id="cancel-expense">Cancel</button>
+            </div>
+        </div>
+        <form id="add-expense-form" action="backend/add_expense.php" method="POST">
+            <div class="form-group">
+                <label for="category"><i class="fas fa-tags icon"></i>Category</label>
+                <select id="category" name="category" required>
+                    <option value="">Select Category</option>
+                    <option value="Food & Dining">Food & Dining</option>
+                    <option value="Transportation">Transportation</option>
+                    <option value="Utilities">Utilities</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Shopping">Shopping</option>
+                    <option value="Healthcare">Healthcare</option>
+                    <option value="Education">Education</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="amount"></i>Amount (₹)</label>
+                <input type="number" id="amount" name="amount" step="0.01" min="0" required placeholder="Enter amount">
+            </div>
+            <div class="form-group">
+                <label for="description"><i class="fas fa-align-left icon"></i>Description</label>
+                <textarea id="description" name="description" rows="3" placeholder="Enter description (optional)"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="date"><i class="fas fa-calendar icon"></i>Date</label>
+                <input type="date" id="date" name="date" required>
+            </div>
+            <button type="submit" class="btn"><i class="fas fa-save icon"></i>Add Expense</button>
+        </form>
+        <div class="links">
+            <a href="dashboard.html" class="btn"><i class="fas fa-arrow-left icon"></i>Back to Dashboard</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('add-expense-form');
+            const categorySelect = document.getElementById('category');
+            const amountInput = document.getElementById('amount');
+            const warningMessage = document.getElementById('warning-message');
+            const warningText = document.getElementById('warning-text');
+            const confirmBtn = document.getElementById('confirm-expense');
+            const cancelBtn = document.getElementById('cancel-expense');
+
+            let selectedCategory = null;
+
+            // Function to show warning message
+            function showWarning(warning) {
+                let icon = 'info';
+                let color = '#3085d6';
+                
+                switch(warning.type) {
+                    case 'success':
+                        icon = 'success';
+                        color = '#28a745';
+                        break;
+                    case 'error':
+                        icon = 'error';
+                        color = '#dc3545';
+                        break;
+                    case 'warning':
+                        icon = 'warning';
+                        color = '#ffc107';
+                        break;
+                }
+
+                let detailsHtml = '';
+                for (const [key, value] of Object.entries(warning.details)) {
+                    if (key === 'Category Usage') {
+                        detailsHtml += `<p><strong>${key}:</strong> ${value.toFixed(1)}%</p>`;
+                    } else if (typeof value === 'number') {
+                        detailsHtml += `<p><strong>${key}:</strong> ₹${value.toFixed(2)}</p>`;
+                    } else {
+                        detailsHtml += `<p><strong>${key}:</strong> ${value}</p>`;
+                    }
+                }
+
+                Swal.fire({
+                    title: warning.message,
+                    html: `<div class="budget-warning">${detailsHtml}</div>`,
+                    icon: icon,
+                    confirmButtonColor: color,
+                    showCancelButton: warning.type !== 'success',
+                    confirmButtonText: warning.type === 'success' ? 'OK' : 'Proceed Anyway',
+                    cancelButtonText: 'Cancel'
+                });
+            }
+
+            // Function to hide warning message
+            function hideWarning() {
+                warningMessage.style.display = 'none';
+            }
+
+            // Function to check budget limit
+            async function checkBudgetLimit(category, amount) {
+                try {
+                    console.log('Checking budget limit for:', category, 'Amount:', amount);
+                    
+                    const response = await fetch('backend/check_budget_limit.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ category, amount })
+                    });
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('Server response:', errorText);
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log('Server response:', data);
+                    
+                    if (!data.success) {
+                        throw new Error(data.error || 'Failed to check budget limit');
+                    }
+                    
+                    return data;
+                } catch (error) {
+                    console.error('Error checking budget limit:', error);
+                    throw error;
+                }
+            }
+
+            // Set default date to today
+            const dateInput = document.getElementById('date');
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+
+            // Update form submission to include budget check
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                try {
+                    const category = document.getElementById('category').value;
+                    const amount = parseFloat(document.getElementById('amount').value);
+                    const description = document.getElementById('description').value.trim();
+                    const date = document.getElementById('date').value;
+
+                    // Validate inputs
+                    if (!category || !amount || !date) {
+                        throw new Error('Please fill in all required fields');
+                    }
+
+                    if (amount <= 0) {
+                        throw new Error('Amount must be greater than 0');
+                    }
+
+                    // Check budget limit before submitting
+                    const budgetCheck = await checkBudgetLimit(category, amount);
+                    
+                    if (budgetCheck.warning) {
+                        const result = await Swal.fire({
+                            title: budgetCheck.warning.message,
+                            html: `
+                                <div class="budget-warning">
+                                    ${Object.entries(budgetCheck.warning.details)
+                                        .map(([key, value]) => {
+                                            if (key === 'Category Usage') {
+                                                return `<p><strong>${key}:</strong> ${value.toFixed(1)}%</p>`;
+                                            } else if (typeof value === 'number') {
+                                                return `<p><strong>${key}:</strong> ₹${value.toFixed(2)}</p>`;
+                                            } else {
+                                                return `<p><strong>${key}:</strong> ${value}</p>`;
+                                            }
+                                        })
+                                        .join('')}
+                                </div>
+                            `,
+                            icon: budgetCheck.warning.type,
+                            showCancelButton: budgetCheck.warning.type !== 'success',
+                            confirmButtonColor: budgetCheck.warning.type === 'success' ? '#28a745' : 
+                                            budgetCheck.warning.type === 'error' ? '#dc3545' : '#ffc107',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: budgetCheck.warning.type === 'success' ? 'OK' : 'Proceed Anyway',
+                            cancelButtonText: 'Cancel'
+                        });
+
+                        if (!result.isConfirmed) {
+                            return;
+                        }
+                    }
+
+                    // Submit the form
+                    const formData = new FormData();
+                    formData.append('category', category);
+                    formData.append('amount', amount);
+                    formData.append('description', description);
+                    formData.append('date', date);
+
+                    const response = await fetch('backend/add_expense.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: 'Expense added successfully!',
+                            showConfirmButton: false,
+                            timer: 1500,
+                            timerProgressBar: true
+                        }).then(() => {
+                        window.location.href = 'view_expenses.html';
+                        });
+                    } else {
+                        throw new Error(result.error || 'Failed to add expense');
+                    }
+                } catch (error) {
+                    console.error('Error adding expense:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: error.message,
+                        confirmButtonColor: '#d33'
+                    });
+                }
+            });
+
+            // Handle confirm button click
+            confirmBtn.addEventListener('click', function() {
+                document.getElementById('warning-message').style.display = 'none';
+                document.getElementById('add-expense-form').submit();
+            });
+
+            // Handle cancel button click
+            cancelBtn.addEventListener('click', function() {
+                hideWarning();
+                selectedCategory = null;
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Expense - Expense Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Add SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <!-- Add SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .toast {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            min-width: 300px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .toast.error {
+            background-color: #f44336;
+        }
+
+        .toast i {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="form-page">
+    <div class="form-container">
+        <header>
+            <h1><i class="fas fa-edit icon"></i>Edit Expense</h1>
+            <p>Update your expense details below.</p>
+        </header>
+
+        <!-- Toast container -->
+        <div id="toast-container" class="toast-container"></div>
+
+        <form id="edit-expense-form" class="expense-form">
+            <input type="hidden" id="expense-id" name="id">
+            <input type="hidden" id="expense-source" name="source">
+            
+            <div class="form-group">
+                <label for="category">Category</label>
+                <select id="category" name="category" required>
+                    <option value="">Select Category</option>
+                    <option value="Food & Dining">Food & Dining</option>
+                    <option value="Transportation">Transportation</option>
+                    <option value="Utilities">Utilities</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Shopping">Shopping</option>
+                    <option value="Healthcare">Healthcare</option>
+                    <option value="Education">Education</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="amount">Amount</label>
+                <input type="number" id="amount" name="amount" step="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="3"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="date">Date</label>
+                <input type="date" id="date" name="date" required>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save icon"></i>Save Changes
+                </button>
+                <a href="view_expenses.html" class="btn btn-secondary">
+                    <i class="fas fa-times icon"></i>Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Check login status
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch('backend/check_session.php');
+                const data = await response.json();
+                
+                if (!data.loggedIn) {
+                    window.location.href = 'login.html';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error('Error checking login status:', error);
+                window.location.href = 'login.html';
+                return false;
+            }
+        }
+
+        // Get expense details
+        async function getExpenseDetails() {
+            try {
+                // Get expense ID and source from URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const id = urlParams.get('id');
+                const source = urlParams.get('source');
+
+                if (!id || !source) {
+                    throw new Error('Missing expense ID or source');
+                }
+
+                // Set the hidden fields
+                document.getElementById('expense-id').value = id;
+                document.getElementById('expense-source').value = source;
+
+                // Get the appropriate endpoint based on source
+                const endpoint = source === 'telegram' ? 'backend/get_expense.php' : 'backend/get_offline_expense.php';
+                
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ id: id })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Populate the form with expense details
+                    document.getElementById('category').value = data.expense.category;
+                    document.getElementById('amount').value = data.expense.amount;
+                    document.getElementById('description').value = data.expense.description;
+                    document.getElementById('date').value = data.expense.date;
+                } else {
+                    throw new Error(data.error || 'Failed to get expense details');
+                }
+            } catch (error) {
+                console.error('Error getting expense details:', error);
+                Swal.fire(
+                    'Error!',
+                    error.message,
+                    'error'
+                ).then(() => {
+                    window.location.href = 'view_expenses.html';
+                });
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('edit-expense-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            try {
+                const formData = new FormData(this);
+                const source = formData.get('source');
+                const endpoint = source === 'telegram' ? 'backend/update_expense.php' : 'backend/update_offline_expense.php';
+
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    Swal.fire(
+                        'Success!',
+                        'Expense updated successfully.',
+                        'success'
+                    ).then(() => {
+                        window.location.href = 'view_expenses.html';
+                    });
+                } else {
+                    throw new Error(data.error || 'Failed to update expense');
+                }
+            } catch (error) {
+                console.error('Error updating expense:', error);
+                Swal.fire(
+                    'Error!',
+                    error.message,
+                    'error'
+                );
+            }
+        });
+
+        // Initialize when the page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (await checkLoginStatus()) {
+                await getExpenseDetails();
+            }
+        });
+    </script>
+
+    <style>
+        .form-container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .expense-form {
+            margin-top: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-size: 16px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: #ffffff;
+        }
+
+        .btn-secondary {
+            background: #f44336;
+            color: #ffffff;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .icon {
+            font-size: 18px;
+        }
+    </style>
+</body>
+</html>
